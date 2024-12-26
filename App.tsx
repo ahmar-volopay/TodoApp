@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Button,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,7 +12,8 @@ import {
 const HelloWorldApp = () => {
   const [text, setText] = React.useState('');
   const [tasks, setTasks] = React.useState<string[]>([]);
-
+  const [modalVisiblity, setModalVisibilty] = React.useState(false);
+  const [deleteIndex, setDeleteIndex] = React.useState(0);
   const deleteTask = (index: number) => {
     const updatedTasks = [...tasks];
     updatedTasks.splice(index, 1);
@@ -33,13 +35,34 @@ const HelloWorldApp = () => {
           title="Add Task"
         />
       </View>
+      <Modal visible={modalVisiblity}>
+        <View>
+          <Text>Are you sure to delete this Task??</Text>
+          <Button
+            onPress={() => {
+              setModalVisibilty(false);
+            }}
+            title="Cancel"
+          />
+          <Button
+            onPress={() => {
+              setModalVisibilty(false);
+              deleteTask(deleteIndex);
+            }}
+            title="Delete"
+          />
+        </View>
+      </Modal>
       <View style={styles.tasksContainer}>
         <ScrollView>
           {tasks.map((task, index) => (
             <View key={index} style={styles.taskItem}>
               <Text>{task}</Text>
               <Button
-                onPress={() => deleteTask(index)}
+                onPress={() => {
+                  setModalVisibilty(true);
+                  setDeleteIndex(index);
+                }}
                 title="Delete"
               />
             </View>
