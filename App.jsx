@@ -121,7 +121,7 @@ export default function HelloWorldApp() {
         </TouchableOpacity>
       </View>
       <View style={styles.container}>
-        ≈{/* Delete Modal */}
+        {/* Delete Modal */}
         <Modal visible={deleteModalVisibility} animationType="fade">
           <View style={styles.modalContent}>
             <Text style={styles.modalText}>
