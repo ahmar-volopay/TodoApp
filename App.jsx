@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Modal,
   ScrollView,
@@ -9,33 +9,84 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Checkbox } from 'react-native-paper';
 
 export default function HelloWorldApp() {
   const [text, setText] = React.useState('');
   const [tasks, setTasks] = React.useState([]);
-  const [deleteModalVisibility, setDeleteModalVisibility] = React.useState(false);
+  const [deleteModalVisibility, setDeleteModalVisibility] =
+    React.useState(false);
   const [editModalVisibility, setEditModalVisibility] = React.useState(false);
   const [taskToDelete, setTaskToDelete] = React.useState(null);
   const [taskIdCounter, setTaskIdCounter] = React.useState(1);
   const [taskToEdit, setTaskToEdit] = React.useState(null);
 
+  useEffect(() => {
+    const loadTasks = async () => {
+      try {
+        const storedTasks = await AsyncStorage.getItem('tasks');
+        if (storedTasks) {
+          const parsedTasks = JSON.parse(storedTasks);
+          const sortedTasks = [
+            ...parsedTasks.filter((task) => !task.completed),
+            ...parsedTasks.filter((task) => task.completed),
+          ];
+          setTasks(sortedTasks);
+          setTaskIdCounter(
+            parsedTasks.length ? parsedTasks[parsedTasks.length - 1].id + 1 : 1
+          );
+        }
+      } catch (error) {
+        console.error('Error loading tasks from AsyncStorage', error);
+      }
+    };
+    loadTasks();
+  }, []);
+
+  useEffect(() => {
+    const saveTasks = async () => {
+      try {
+        await AsyncStorage.setItem('tasks', JSON.stringify(tasks));
+      } catch (error) {
+        console.error('Error saving tasks to AsyncStorage', error);
+      }
+    };
+    saveTasks();
+  }, [tasks]);
+
   const addTask = () => {
     if (text.trim()) {
-      const newTask = { id: taskIdCounter, text };
-      setTasks([...tasks, newTask]);
+      const newTask = { id: taskIdCounter, text, completed: false };
+      setTasks([
+        ...tasks.filter((task) => !task.completed),
+        newTask,
+        ...tasks.filter((task) => task.completed),
+      ]);
       setText('');
       setTaskIdCounter(taskIdCounter + 1);
     }
   };
 
-  const deleteTask = taskId => {
-    const updatedTasks = tasks.filter(task => task.id !== taskId);
+  const toggleTaskCompletion = (taskId) => {
+    const updatedTasks = tasks.map((task) =>
+      task.id === taskId ? { ...task, completed: !task.completed } : task
+    );
+    const sortedTasks = [
+      ...updatedTasks.filter((task) => !task.completed),
+      ...updatedTasks.filter((task) => task.completed),
+    ];
+    setTasks(sortedTasks);
+  };
+
+  const deleteTask = (taskId) => {
+    const updatedTasks = tasks.filter((task) => task.id !== taskId);
     setTasks(updatedTasks);
     setDeleteModalVisibility(false);
   };
 
-  const editTask = taskId => {
-    const editableTask = tasks.find(task => task.id === taskId);
+  const editTask = (taskId) => {
+    const editableTask = tasks.find((task) => task.id === taskId);
     if (editableTask) {
       setText(editableTask.text);
       setTaskToEdit(editableTask);
@@ -45,7 +96,7 @@ export default function HelloWorldApp() {
 
   const saveEditedTask = () => {
     if (taskToEdit) {
-      const updatedTasks = tasks.map(task =>
+      const updatedTasks = tasks.map((task) =>
         task.id === taskToEdit.id ? { ...task, text } : task
       );
       setTasks(updatedTasks);
@@ -118,13 +169,24 @@ export default function HelloWorldApp() {
 
       <View style={styles.tasksContainer}>
         <ScrollView>
-          {tasks.map(task => (
+          {tasks.map((task) => (
             <View key={task.id} style={styles.taskItem}>
-              <Text style={styles.taskText}>{task.text}</Text>
-              <TouchableOpacity
-                onPress={() => editTask(task.id)}>
-                <Icon name="edit" size={20} color="#000000" />
-              </TouchableOpacity>
+              <Checkbox
+                status={task.completed ? 'checked' : 'unchecked'}
+                onPress={() => toggleTaskCompletion(task.id)}
+              />
+              <Text
+                style={[
+                  styles.taskText,
+                  task.completed && styles.completedTaskText,
+                ]}>
+                {task.text}
+              </Text>
+              {!task.completed && (
+                <TouchableOpacity onPress={() => editTask(task.id)}>
+                  <Icon name="edit" size={20} color="#000000" />
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 onPress={() => {
                   setDeleteModalVisibility(true);
@@ -141,12 +203,13 @@ export default function HelloWorldApp() {
   );
 }
 
+
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    paddingTop: 40,
     backgroundColor: '#f4f4f4',
   },
   heading: {
@@ -201,6 +264,10 @@ const styles = StyleSheet.create({
     color: '#333',
     flex: 1,
   },
+  completedTaskText: {
+    textDecorationLine: 'line-through',
+    color: '#888',
+  },
   iconButton: {
     padding: 5,
   },
@@ -234,6 +301,7 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: '#fff',
+    fontWeight: 'bold',
   },
   deleteButton: {
     backgroundColor: '#d9534f',
@@ -243,5 +311,6 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     color: '#fff',
+    fontWeight: 'bold',
   },
 });
