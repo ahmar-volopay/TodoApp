@@ -1,5 +1,4 @@
 import React from 'react';
-
 import {
   Modal,
   ScrollView,
@@ -15,8 +14,10 @@ export default function HelloWorldApp() {
   const [text, setText] = React.useState('');
   const [tasks, setTasks] = React.useState([]);
   const [deleteModalVisibility, setDeleteModalVisibility] = React.useState(false);
+  const [editModalVisibility, setEditModalVisibility] = React.useState(false);
   const [taskToDelete, setTaskToDelete] = React.useState(null);
   const [taskIdCounter, setTaskIdCounter] = React.useState(1);
+  const [taskToEdit, setTaskToEdit] = React.useState(null);
 
   const addTask = () => {
     if (text.trim()) {
@@ -37,19 +38,20 @@ export default function HelloWorldApp() {
     const editableTask = tasks.find(task => task.id === taskId);
     if (editableTask) {
       setText(editableTask.text);
-      setTaskToDelete(taskId);
-      setDeleteModalVisibility(false);
+      setTaskToEdit(editableTask);
+      setEditModalVisibility(true);
     }
   };
 
   const saveEditedTask = () => {
-    if (taskToDelete) {
+    if (taskToEdit) {
       const updatedTasks = tasks.map(task =>
-        task.id === taskToDelete ? { ...task, text } : task
+        task.id === taskToEdit.id ? { ...task, text } : task
       );
       setTasks(updatedTasks);
       setText('');
-      setTaskToDelete(null);
+      setTaskToEdit(null);
+      setEditModalVisibility(false);
     }
   };
 
@@ -90,7 +92,7 @@ export default function HelloWorldApp() {
       </Modal>
 
       {/* Edit Modal */}
-      <Modal visible={text && taskToDelete !== null} animationType="fade">
+      <Modal visible={editModalVisibility} animationType="fade">
         <View style={styles.modalContent}>
           <Text style={styles.modalText}>Editing Task...</Text>
           <TextInput
@@ -101,7 +103,7 @@ export default function HelloWorldApp() {
           />
           <View style={styles.options}>
             <TouchableOpacity
-              onPress={() => setTaskToDelete(null)}
+              onPress={() => setEditModalVisibility(false)}
               style={styles.cancelButton}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
