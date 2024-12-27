@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 import {
   Modal,
   ScrollView,
@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Checkbox } from 'react-native-paper';
+import {Checkbox} from 'react-native-paper';
 
 export default function HelloWorldApp() {
   const [text, setText] = React.useState('');
@@ -29,12 +29,12 @@ export default function HelloWorldApp() {
         if (storedTasks) {
           const parsedTasks = JSON.parse(storedTasks);
           const sortedTasks = [
-            ...parsedTasks.filter((task) => !task.completed),
-            ...parsedTasks.filter((task) => task.completed),
+            ...parsedTasks.filter(task => !task.completed),
+            ...parsedTasks.filter(task => task.completed),
           ];
           setTasks(sortedTasks);
           setTaskIdCounter(
-            parsedTasks.length ? parsedTasks[parsedTasks.length - 1].id + 1 : 1
+            parsedTasks.length ? parsedTasks[parsedTasks.length - 1].id + 1 : 1,
           );
         }
       } catch (error) {
@@ -57,36 +57,36 @@ export default function HelloWorldApp() {
 
   const addTask = () => {
     if (text.trim()) {
-      const newTask = { id: taskIdCounter, text, completed: false };
+      const newTask = {id: taskIdCounter, text, completed: false};
       setTasks([
-        ...tasks.filter((task) => !task.completed),
+        ...tasks.filter(task => !task.completed),
         newTask,
-        ...tasks.filter((task) => task.completed),
+        ...tasks.filter(task => task.completed),
       ]);
       setText('');
       setTaskIdCounter(taskIdCounter + 1);
     }
   };
 
-  const toggleTaskCompletion = (taskId) => {
-    const updatedTasks = tasks.map((task) =>
-      task.id === taskId ? { ...task, completed: !task.completed } : task
+  const toggleTaskCompletion = taskId => {
+    const updatedTasks = tasks.map(task =>
+      task.id === taskId ? {...task, completed: !task.completed} : task,
     );
     const sortedTasks = [
-      ...updatedTasks.filter((task) => !task.completed),
-      ...updatedTasks.filter((task) => task.completed),
+      ...updatedTasks.filter(task => !task.completed),
+      ...updatedTasks.filter(task => task.completed),
     ];
     setTasks(sortedTasks);
   };
 
-  const deleteTask = (taskId) => {
-    const updatedTasks = tasks.filter((task) => task.id !== taskId);
+  const deleteTask = taskId => {
+    const updatedTasks = tasks.filter(task => task.id !== taskId);
     setTasks(updatedTasks);
     setDeleteModalVisibility(false);
   };
 
-  const editTask = (taskId) => {
-    const editableTask = tasks.find((task) => task.id === taskId);
+  const editTask = taskId => {
+    const editableTask = tasks.find(task => task.id === taskId);
     if (editableTask) {
       setText(editableTask.text);
       setTaskToEdit(editableTask);
@@ -96,8 +96,8 @@ export default function HelloWorldApp() {
 
   const saveEditedTask = () => {
     if (taskToEdit) {
-      const updatedTasks = tasks.map((task) =>
-        task.id === taskToEdit.id ? { ...task, text } : task
+      const updatedTasks = tasks.map(task =>
+        task.id === taskToEdit.id ? {...task, text} : task,
       );
       setTasks(updatedTasks);
       setText('');
@@ -107,8 +107,8 @@ export default function HelloWorldApp() {
   };
 
   return (
-    <View style={styles.container}>
-      <View>
+    <View>
+      <View style={styles.container}>
         <Text style={styles.heading}>Enter Task:</Text>
         <TextInput
           onChangeText={setText}
@@ -120,89 +120,87 @@ export default function HelloWorldApp() {
           <Text style={styles.addButtonText}>Add Task</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Delete Modal */}
-      <Modal visible={deleteModalVisibility} animationType="fade">
-        <View style={styles.modalContent}>
-          <Text style={styles.modalText}>
-            Are you sure you want to delete this task?
-          </Text>
-          <View style={styles.options}>
-            <TouchableOpacity
-              onPress={() => setDeleteModalVisibility(false)}
-              style={styles.cancelButton}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => deleteTask(taskToDelete)}
-              style={styles.deleteButton}>
-              <Text style={styles.deleteButtonText}>Delete</Text>
-            </TouchableOpacity>
+      <View style={styles.container}>
+        ≈{/* Delete Modal */}
+        <Modal visible={deleteModalVisibility} animationType="fade">
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>
+              Are you sure you want to delete this task?
+            </Text>
+            <View style={styles.options}>
+              <TouchableOpacity
+                onPress={() => setDeleteModalVisibility(false)}
+                style={styles.cancelButton}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => deleteTask(taskToDelete)}
+                style={styles.deleteButton}>
+                <Text style={styles.deleteButtonText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
-
-      {/* Edit Modal */}
-      <Modal visible={editModalVisibility} animationType="fade">
-        <View style={styles.modalContent}>
-          <Text style={styles.modalText}>Editing Task...</Text>
-          <TextInput
-            onChangeText={setText}
-            value={text}
-            style={styles.input}
-            placeholder="Edit task"
-          />
-          <View style={styles.options}>
-            <TouchableOpacity
-              onPress={() => setEditModalVisibility(false)}
-              style={styles.cancelButton}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={saveEditedTask}
-              style={styles.deleteButton}>
-              <Text style={styles.deleteButtonText}>Save</Text>
-            </TouchableOpacity>
+        </Modal>
+        {/* Edit Modal */}
+        <Modal visible={editModalVisibility} animationType="fade">
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>Editing Task...</Text>
+            <TextInput
+              onChangeText={setText}
+              value={text}
+              style={styles.input}
+              placeholder="Edit task"
+            />
+            <View style={styles.options}>
+              <TouchableOpacity
+                onPress={() => setEditModalVisibility(false)}
+                style={styles.cancelButton}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={saveEditedTask}
+                style={styles.deleteButton}>
+                <Text style={styles.deleteButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+        <View style={styles.tasksContainer}>
+          <ScrollView>
+            {tasks.map(task => (
+              <View key={task.id} style={styles.taskItem}>
+                <Checkbox
+                  status={task.completed ? 'checked' : 'unchecked'}
+                  onPress={() => toggleTaskCompletion(task.id)}
+                />
+                <Text
+                  style={[
+                    styles.taskText,
+                    task.completed && styles.completedTaskText,
+                  ]}>
+                  {task.text}
+                </Text>
 
-      <View style={styles.tasksContainer}>
-        <ScrollView>
-          {tasks.map((task) => (
-            <View key={task.id} style={styles.taskItem}>
-              <Checkbox
-                status={task.completed ? 'checked' : 'unchecked'}
-                onPress={() => toggleTaskCompletion(task.id)}
-              />
-              <Text
-                style={[
-                  styles.taskText,
-                  task.completed && styles.completedTaskText,
-                ]}>
-                {task.text}
-              </Text>
-              {!task.completed && (
                 <TouchableOpacity onPress={() => editTask(task.id)}>
                   <Icon name="edit" size={20} color="#000000" />
                 </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                onPress={() => {
-                  setDeleteModalVisibility(true);
-                  setTaskToDelete(task.id);
-                }}
-                style={styles.iconButton}>
-                <Icon name="delete" size={20} color="#d9534f" />
-              </TouchableOpacity>
-            </View>
-          ))}
-        </ScrollView>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    setDeleteModalVisibility(true);
+                    setTaskToDelete(task.id);
+                  }}
+                  style={styles.iconButton}>
+                  <Icon name="delete" size={20} color="#d9534f" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
       </View>
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -254,7 +252,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#fff',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
