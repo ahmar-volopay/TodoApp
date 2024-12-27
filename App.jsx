@@ -117,7 +117,7 @@ export default function HelloWorldApp() {
           placeholder="Enter task here"
         />
         <TouchableOpacity style={styles.addButton} onPress={addTask}>
-          <Text style={styles.addButtonText}>Add Task</Text>
+          <Text style={styles.buttonText}>Add Task</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.container}>
@@ -131,12 +131,12 @@ export default function HelloWorldApp() {
               <TouchableOpacity
                 onPress={() => setDeleteModalVisibility(false)}
                 style={styles.cancelButton}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.buttonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => deleteTask(taskToDelete)}
                 style={styles.deleteButton}>
-                <Text style={styles.deleteButtonText}>Delete</Text>
+                <Text style={styles.buttonText}>Delete</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -155,12 +155,12 @@ export default function HelloWorldApp() {
               <TouchableOpacity
                 onPress={() => setEditModalVisibility(false)}
                 style={styles.cancelButton}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.buttonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={saveEditedTask}
-                style={styles.deleteButton}>
-                <Text style={styles.deleteButtonText}>Save</Text>
+                style={styles.saveButton}>
+                <Text style={styles.buttonText}>Save</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -208,7 +208,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     paddingTop: 40,
-    backgroundColor: '#f4f4f4',
   },
   heading: {
     fontSize: 20,
@@ -233,7 +232,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
-  addButtonText: {
+  buttonText: {
     color: '#fff',
     fontWeight: 'bold',
   },
@@ -297,18 +296,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginRight: 10,
   },
-  cancelButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
   deleteButton: {
     backgroundColor: '#d9534f',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
   },
-  deleteButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+  saveButton: {
+    backgroundColor: '#05c002',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
   },
 });
