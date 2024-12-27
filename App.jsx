@@ -1,23 +1,22 @@
 import React from 'react';
 import {
-  Button,
   Modal,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const HelloWorldApp = () => {
   const [text, setText] = React.useState('');
-  const [tasks, setTasks] = React.useState<string[]>([]);
+  const [tasks, setTasks] = React.useState([]);
   const [modalVisiblity, setModalVisibilty] = React.useState(false);
-  const [deleteIndex, setDeleteIndex] = React.useState<number | undefined>(
-    undefined,
-  );
+  const [deleteIndex, setDeleteIndex] = React.useState();
 
-  const deleteTask = (index: number) => {
+  const deleteTask = index => {
     const updatedTasks = [...tasks];
     updatedTasks.splice(index, 1);
     setTasks(updatedTasks);
@@ -33,16 +32,16 @@ const HelloWorldApp = () => {
           style={styles.input}
           placeholder="Enter task here"
         />
-        <Button
+        <TouchableOpacity
+          style={styles.addButton}
           onPress={() => {
             if (text.trim()) {
               setTasks([...tasks, text]);
               setText('');
             }
-          }}
-          title="Add Task"
-          color="#007BFF"
-        />
+          }}>
+          <Text style={styles.addButtonText}>Add Task</Text>
+        </TouchableOpacity>
       </View>
 
       <Modal visible={modalVisiblity} animationType="fade">
@@ -51,21 +50,21 @@ const HelloWorldApp = () => {
             Are you sure you want to delete this task?
           </Text>
           <View style={styles.options}>
-            <Button
+            <TouchableOpacity
               onPress={() => setModalVisibilty(false)}
-              title="Cancel"
-              color="#d9534f"
-            />
-            <Button
+              style={styles.cancelButton}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               onPress={() => {
                 if (deleteIndex !== undefined) {
                   setModalVisibilty(false);
                   deleteTask(deleteIndex);
                 }
               }}
-              title="Delete"
-              color="#007BFF"
-            />
+              style={styles.deleteButton}>
+              <Text style={styles.deleteButtonText}>Delete</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -75,14 +74,14 @@ const HelloWorldApp = () => {
           {tasks.map((task, index) => (
             <View key={index} style={styles.taskItem}>
               <Text style={styles.taskText}>{task}</Text>
-              <Button
+              <TouchableOpacity
                 onPress={() => {
-                  setDeleteIndex(index);
                   setModalVisibilty(true);
+                  setDeleteIndex(index);
                 }}
-                title="Delete"
-                color="#d9534f"
-              />
+                style={styles.iconButton}>
+                <Icon name="delete" size={20} color="#d9534f" />
+              </TouchableOpacity>
             </View>
           ))}
         </ScrollView>
@@ -115,6 +114,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#fff',
   },
+  addButton: {
+    backgroundColor: '#007BFF',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
   tasksContainer: {
     marginTop: 20,
     width: '100%',
@@ -130,7 +140,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#fff',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -139,6 +149,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     flex: 1,
+  },
+  iconButton: {
+    padding: 5,
   },
   modalContent: {
     flex: 1,
@@ -160,6 +173,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
+  },
+  cancelButton: {
+    backgroundColor: '#007BFF',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  cancelButtonText: {
+    color: '#fff',
+  },
+  deleteButton: {
+    backgroundColor: '#d9534f',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  deleteButtonText: {
+    color: '#fff',
   },
 });
 
