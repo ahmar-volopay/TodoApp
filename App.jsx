@@ -1,4 +1,5 @@
 import React from 'react';
+
 import {
   Modal,
   ScrollView,
@@ -10,16 +11,46 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const HelloWorldApp = () => {
+export default function HelloWorldApp() {
   const [text, setText] = React.useState('');
   const [tasks, setTasks] = React.useState([]);
-  const [modalVisiblity, setModalVisibilty] = React.useState(false);
-  const [deleteIndex, setDeleteIndex] = React.useState();
+  const [deleteModalVisibility, setDeleteModalVisibility] = React.useState(false);
+  const [taskToDelete, setTaskToDelete] = React.useState(null);
+  const [taskIdCounter, setTaskIdCounter] = React.useState(1);
 
-  const deleteTask = index => {
-    const updatedTasks = [...tasks];
-    updatedTasks.splice(index, 1);
+  const addTask = () => {
+    if (text.trim()) {
+      const newTask = { id: taskIdCounter, text };
+      setTasks([...tasks, newTask]);
+      setText('');
+      setTaskIdCounter(taskIdCounter + 1);
+    }
+  };
+
+  const deleteTask = taskId => {
+    const updatedTasks = tasks.filter(task => task.id !== taskId);
     setTasks(updatedTasks);
+    setDeleteModalVisibility(false);
+  };
+
+  const editTask = taskId => {
+    const editableTask = tasks.find(task => task.id === taskId);
+    if (editableTask) {
+      setText(editableTask.text);
+      setTaskToDelete(taskId);
+      setDeleteModalVisibility(false);
+    }
+  };
+
+  const saveEditedTask = () => {
+    if (taskToDelete) {
+      const updatedTasks = tasks.map(task =>
+        task.id === taskToDelete ? { ...task, text } : task
+      );
+      setTasks(updatedTasks);
+      setText('');
+      setTaskToDelete(null);
+    }
   };
 
   return (
@@ -32,36 +63,25 @@ const HelloWorldApp = () => {
           style={styles.input}
           placeholder="Enter task here"
         />
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => {
-            if (text.trim()) {
-              setTasks([...tasks, text]);
-              setText('');
-            }
-          }}>
+        <TouchableOpacity style={styles.addButton} onPress={addTask}>
           <Text style={styles.addButtonText}>Add Task</Text>
         </TouchableOpacity>
       </View>
 
-      <Modal visible={modalVisiblity} animationType="fade">
+      {/* Delete Modal */}
+      <Modal visible={deleteModalVisibility} animationType="fade">
         <View style={styles.modalContent}>
           <Text style={styles.modalText}>
             Are you sure you want to delete this task?
           </Text>
           <View style={styles.options}>
             <TouchableOpacity
-              onPress={() => setModalVisibilty(false)}
+              onPress={() => setDeleteModalVisibility(false)}
               style={styles.cancelButton}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => {
-                if (deleteIndex !== undefined) {
-                  setModalVisibilty(false);
-                  deleteTask(deleteIndex);
-                }
-              }}
+              onPress={() => deleteTask(taskToDelete)}
               style={styles.deleteButton}>
               <Text style={styles.deleteButtonText}>Delete</Text>
             </TouchableOpacity>
@@ -69,15 +89,44 @@ const HelloWorldApp = () => {
         </View>
       </Modal>
 
+      {/* Edit Modal */}
+      <Modal visible={text && taskToDelete !== null} animationType="fade">
+        <View style={styles.modalContent}>
+          <Text style={styles.modalText}>Editing Task...</Text>
+          <TextInput
+            onChangeText={setText}
+            value={text}
+            style={styles.input}
+            placeholder="Edit task"
+          />
+          <View style={styles.options}>
+            <TouchableOpacity
+              onPress={() => setTaskToDelete(null)}
+              style={styles.cancelButton}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={saveEditedTask}
+              style={styles.deleteButton}>
+              <Text style={styles.deleteButtonText}>Save</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <View style={styles.tasksContainer}>
         <ScrollView>
-          {tasks.map((task, index) => (
-            <View key={index} style={styles.taskItem}>
-              <Text style={styles.taskText}>{task}</Text>
+          {tasks.map(task => (
+            <View key={task.id} style={styles.taskItem}>
+              <Text style={styles.taskText}>{task.text}</Text>
+              <TouchableOpacity
+                onPress={() => editTask(task.id)}>
+                <Icon name="edit" size={20} color="#000000" />
+              </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
-                  setModalVisibilty(true);
-                  setDeleteIndex(index);
+                  setDeleteModalVisibility(true);
+                  setTaskToDelete(task.id);
                 }}
                 style={styles.iconButton}>
                 <Icon name="delete" size={20} color="#d9534f" />
@@ -88,7 +137,7 @@ const HelloWorldApp = () => {
       </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -194,5 +243,3 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 });
-
-export default HelloWorldApp;
