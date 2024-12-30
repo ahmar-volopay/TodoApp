@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {
   Modal,
   ScrollView,
@@ -21,6 +21,14 @@ export default function HelloWorldApp() {
   const [taskToDelete, setTaskToDelete] = React.useState(null);
   const [taskIdCounter, setTaskIdCounter] = React.useState(1);
   const [taskToEdit, setTaskToEdit] = React.useState(null);
+
+  const editRef = useRef(null);
+
+  useEffect(() => {
+    if (editModalVisibility) {
+      editRef.current?.focus();
+    }
+  }, [editModalVisibility]);
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -146,6 +154,7 @@ export default function HelloWorldApp() {
           <View style={styles.modalContent}>
             <Text style={styles.modalText}>Editing Task...</Text>
             <TextInput
+              ref={editRef}
               onChangeText={setText}
               value={text}
               style={styles.input}
