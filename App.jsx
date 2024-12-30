@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Modal,
   ScrollView,
@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {Checkbox} from 'react-native-paper';
+import { Checkbox } from 'react-native-paper';
 
 export default function HelloWorldApp() {
   const [text, setText] = React.useState('');
@@ -34,6 +34,7 @@ export default function HelloWorldApp() {
     const loadTasks = async () => {
       try {
         const storedTasks = await AsyncStorage.getItem('tasks');
+        const storedCounter = await AsyncStorage.getItem('taskIdCounter');
         if (storedTasks) {
           const parsedTasks = JSON.parse(storedTasks);
           const sortedTasks = [
@@ -41,12 +42,10 @@ export default function HelloWorldApp() {
             ...parsedTasks.filter(task => task.completed),
           ];
           setTasks(sortedTasks);
-          setTaskIdCounter(
-            parsedTasks.length ? parsedTasks[parsedTasks.length - 1].id + 1 : 1,
-          );
         }
+        setTaskIdCounter(storedCounter ? parseInt(storedCounter, 10) : 1);
       } catch (error) {
-        console.error('Error loading tasks from AsyncStorage', error);
+        console.error('Error loading tasks or counter from AsyncStorage', error);
       }
     };
     loadTasks();
@@ -63,9 +62,20 @@ export default function HelloWorldApp() {
     saveTasks();
   }, [tasks]);
 
+  useEffect(() => {
+    const saveTaskIdCounter = async () => {
+      try {
+        await AsyncStorage.setItem('taskIdCounter', taskIdCounter.toString());
+      } catch (error) {
+        console.error('Error saving taskIdCounter to AsyncStorage', error);
+      }
+    };
+    saveTaskIdCounter();
+  }, [taskIdCounter]);
+
   const addTask = () => {
     if (text.trim()) {
-      const newTask = {id: taskIdCounter, text, completed: false};
+      const newTask = { id: taskIdCounter, text, completed: false };
       setTasks([
         ...tasks.filter(task => !task.completed),
         newTask,
@@ -78,7 +88,7 @@ export default function HelloWorldApp() {
 
   const toggleTaskCompletion = taskId => {
     const updatedTasks = tasks.map(task =>
-      task.id === taskId ? {...task, completed: !task.completed} : task,
+      task.id === taskId ? { ...task, completed: !task.completed } : task
     );
     const sortedTasks = [
       ...updatedTasks.filter(task => !task.completed),
@@ -105,7 +115,7 @@ export default function HelloWorldApp() {
   const saveEditedTask = () => {
     if (taskToEdit) {
       const updatedTasks = tasks.map(task =>
-        task.id === taskToEdit.id ? {...task, text} : task,
+        task.id === taskToEdit.id ? { ...task, text } : task
       );
       setTasks(updatedTasks);
       setText('');
@@ -260,7 +270,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#fff',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -294,27 +304,28 @@ const styles = StyleSheet.create({
   },
   options: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-around',
+    width: '100%',
   },
   cancelButton: {
-    backgroundColor: '#007BFF',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    backgroundColor: '#6c757d',
+    padding: 10,
     borderRadius: 8,
-    marginRight: 10,
+    alignItems: 'center',
+    marginHorizontal: 10,
   },
   deleteButton: {
     backgroundColor: '#d9534f',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    padding: 10,
     borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 10,
   },
   saveButton: {
-    backgroundColor: '#05c002',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    backgroundColor: '#28a745',
+    padding: 10,
     borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 10,
   },
 });
