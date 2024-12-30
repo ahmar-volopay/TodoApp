@@ -1,39 +1,29 @@
-import React, {useEffect, useRef} from 'react';
-import {
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import React, {useState, useEffect} from 'react';
+import {NavigationContainer} from '@react-navigation/native';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {Checkbox} from 'react-native-paper';
 
-export default function HelloWorldApp() {
-  const [text, setText] = React.useState('');
-  const [tasks, setTasks] = React.useState([]);
-  const [deleteModalVisibility, setDeleteModalVisibility] =
-    React.useState(false);
-  const [editModalVisibility, setEditModalVisibility] = React.useState(false);
-  const [taskToDelete, setTaskToDelete] = React.useState(null);
-  const [taskIdCounter, setTaskIdCounter] = React.useState(1);
-  const [taskToEdit, setTaskToEdit] = React.useState(null);
+// Import Screens
+import HomeScreen from './screens/HomeScreen';
+import CompletedScreen from './screens/CompletedScreen';
+import ToDoScreen from './screens/TodoScreen';  // Make sure the path is correct
 
-  const editRef = useRef(null);
+const Tab = createBottomTabNavigator();
 
-  useEffect(() => {
-    if (editModalVisibility) {
-      editRef.current?.focus();
-    }
-  }, [editModalVisibility]);
+export default function App() {
+  const [tasks, setTasks] = useState([]);
+  const [text, setText] = useState('');
+  const [taskIdCounter, setTaskIdCounter] = useState(1);
+  const [deleteModalVisibility, setDeleteModalVisibility] = useState(false);
+  const [editModalVisibility, setEditModalVisibility] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState(null);
 
+  // Load tasks and task counter from AsyncStorage on component mount
   useEffect(() => {
     const loadTasks = async () => {
       try {
         const storedTasks = await AsyncStorage.getItem('tasks');
+        const storedCounter = await AsyncStorage.getItem('taskIdCounter');
         if (storedTasks) {
           const parsedTasks = JSON.parse(storedTasks);
           const sortedTasks = [
@@ -41,17 +31,16 @@ export default function HelloWorldApp() {
             ...parsedTasks.filter(task => task.completed),
           ];
           setTasks(sortedTasks);
-          setTaskIdCounter(
-            parsedTasks.length ? parsedTasks[parsedTasks.length - 1].id + 1 : 1,
-          );
         }
+        setTaskIdCounter(storedCounter ? parseInt(storedCounter, 10) : 1);
       } catch (error) {
-        console.error('Error loading tasks from AsyncStorage', error);
+        console.error('Error loading tasks or counter from AsyncStorage', error);
       }
     };
     loadTasks();
   }, []);
 
+  // Save tasks to AsyncStorage when tasks state changes
   useEffect(() => {
     const saveTasks = async () => {
       try {
@@ -63,19 +52,32 @@ export default function HelloWorldApp() {
     saveTasks();
   }, [tasks]);
 
+  // Save taskIdCounter to AsyncStorage when it changes
+  useEffect(() => {
+    const saveTaskIdCounter = async () => {
+      try {
+        await AsyncStorage.setItem('taskIdCounter', taskIdCounter.toString());
+      } catch (error) {
+        console.error('Error saving taskIdCounter to AsyncStorage', error);
+      }
+    };
+    saveTaskIdCounter();
+  }, [taskIdCounter]);
+
+  // Add a new task
   const addTask = () => {
     if (text.trim()) {
       const newTask = {id: taskIdCounter, text, completed: false};
-      setTasks([
-        ...tasks.filter(task => !task.completed),
+      setTasks(prevTasks => [
+        ...prevTasks,
         newTask,
-        ...tasks.filter(task => task.completed),
       ]);
       setText('');
-      setTaskIdCounter(taskIdCounter + 1);
+      setTaskIdCounter(prevCounter => prevCounter + 1);
     }
   };
 
+  // Toggle task completion status
   const toggleTaskCompletion = taskId => {
     const updatedTasks = tasks.map(task =>
       task.id === taskId ? {...task, completed: !task.completed} : task,
@@ -87,234 +89,82 @@ export default function HelloWorldApp() {
     setTasks(sortedTasks);
   };
 
-  const deleteTask = taskId => {
-    const updatedTasks = tasks.filter(task => task.id !== taskId);
-    setTasks(updatedTasks);
-    setDeleteModalVisibility(false);
+  // Delete a task
+  const deleteTask = () => {
+    if (taskToDelete !== null) {
+      const updatedTasks = tasks.filter(task => task.id !== taskToDelete);
+      setTasks(updatedTasks);
+      setDeleteModalVisibility(false);
+    }
   };
 
+  // Edit an existing task
   const editTask = taskId => {
     const editableTask = tasks.find(task => task.id === taskId);
     if (editableTask) {
       setText(editableTask.text);
-      setTaskToEdit(editableTask);
+      setTaskToDelete(editableTask.id); // or setTaskToEdit depending on logic
       setEditModalVisibility(true);
     }
   };
 
+  // Save edited task
   const saveEditedTask = () => {
-    if (taskToEdit) {
+    if (taskToDelete !== null) {
       const updatedTasks = tasks.map(task =>
-        task.id === taskToEdit.id ? {...task, text} : task,
+        task.id === taskToDelete ? {...task, text} : task,
       );
       setTasks(updatedTasks);
       setText('');
-      setTaskToEdit(null);
+      setTaskToDelete(null);
       setEditModalVisibility(false);
     }
   };
 
   return (
-    <View>
-      <View style={styles.container}>
-        <Text style={styles.heading}>Enter Task:</Text>
-        <TextInput
-          onChangeText={setText}
-          value={text}
-          style={styles.input}
-          placeholder="Enter task here"
-        />
-        <TouchableOpacity style={styles.addButton} onPress={addTask}>
-          <Text style={styles.buttonText}>Add Task</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.container}>
-        {/* Delete Modal */}
-        <Modal visible={deleteModalVisibility} animationType="fade">
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>
-              Are you sure you want to delete this task?
-            </Text>
-            <View style={styles.options}>
-              <TouchableOpacity
-                onPress={() => setDeleteModalVisibility(false)}
-                style={styles.cancelButton}>
-                <Text style={styles.buttonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => deleteTask(taskToDelete)}
-                style={styles.deleteButton}>
-                <Text style={styles.buttonText}>Delete</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-        {/* Edit Modal */}
-        <Modal visible={editModalVisibility} animationType="fade">
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>Editing Task...</Text>
-            <TextInput
-              ref={editRef}
-              onChangeText={setText}
-              value={text}
-              style={styles.input}
-              placeholder="Edit task"
+    <NavigationContainer>
+      <Tab.Navigator>
+        <Tab.Screen name="Home">
+          {props => (
+            <HomeScreen
+              {...props}
+              tasks={tasks}
+              setTasks={setTasks}
+              text={text}
+              setText={setText}
+              addTask={addTask}
+              deleteTask={deleteTask}
+              toggleTaskCompletion={toggleTaskCompletion}
+              editTask={editTask}
+              editModalVisibility={editModalVisibility}
+              setEditModalVisibility={setEditModalVisibility}
+              saveEditedTask={saveEditedTask}
+              taskToDelete={taskToDelete}
+              setTaskToDelete={setTaskToDelete}
+              deleteModalVisibility={deleteModalVisibility}
+              setDeleteModalVisibility={setDeleteModalVisibility}
             />
-            <View style={styles.options}>
-              <TouchableOpacity
-                onPress={() => setEditModalVisibility(false)}
-                style={styles.cancelButton}>
-                <Text style={styles.buttonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={saveEditedTask}
-                style={styles.saveButton}>
-                <Text style={styles.buttonText}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-        <View style={styles.tasksContainer}>
-          <ScrollView>
-            {tasks.map(task => (
-              <View key={task.id} style={styles.taskItem}>
-                <Checkbox
-                  status={task.completed ? 'checked' : 'unchecked'}
-                  onPress={() => toggleTaskCompletion(task.id)}
-                />
-                <Text
-                  style={[
-                    styles.taskText,
-                    task.completed && styles.completedTaskText,
-                  ]}>
-                  {task.text}
-                </Text>
-
-                <TouchableOpacity onPress={() => editTask(task.id)}>
-                  <Icon name="edit" size={20} color="#000000" />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => {
-                    setDeleteModalVisibility(true);
-                    setTaskToDelete(task.id);
-                  }}
-                  style={styles.iconButton}>
-                  <Icon name="delete" size={20} color="#d9534f" />
-                </TouchableOpacity>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-      </View>
-    </View>
+          )}
+        </Tab.Screen>
+        <Tab.Screen name="CompletedScreen">
+          {props => (
+            <CompletedScreen
+              {...props}
+              tasks={tasks}
+              toggleTaskCompletion={toggleTaskCompletion}
+            />
+          )}
+        </Tab.Screen>
+        <Tab.Screen name="ToDoScreen">
+          {props => (
+            <ToDoScreen
+              {...props}
+              tasks={tasks}
+              toggleTaskCompletion={toggleTaskCompletion}
+            />
+          )}
+        </Tab.Screen>
+      </Tab.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    paddingTop: 40,
-  },
-  heading: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-    color: '#333',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    padding: 12,
-    marginVertical: 10,
-    width: 250,
-    borderRadius: 8,
-    backgroundColor: '#fff',
-  },
-  addButton: {
-    backgroundColor: '#007BFF',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  tasksContainer: {
-    marginTop: 20,
-    width: '100%',
-  },
-  taskItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  taskText: {
-    fontSize: 16,
-    color: '#333',
-    flex: 1,
-  },
-  completedTaskText: {
-    textDecorationLine: 'line-through',
-    color: '#888',
-  },
-  iconButton: {
-    padding: 5,
-  },
-  modalContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    elevation: 5,
-  },
-  modalText: {
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: 'center',
-    color: '#333',
-  },
-  options: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-  },
-  cancelButton: {
-    backgroundColor: '#007BFF',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginRight: 10,
-  },
-  deleteButton: {
-    backgroundColor: '#d9534f',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  saveButton: {
-    backgroundColor: '#05c002',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-});
