@@ -2,16 +2,15 @@ import React from 'react';
 import {
   View,
   Text,
-  ScrollView,
-  TouchableOpacity,
   TextInput,
-  StyleSheet,
+  FlatList,
   Modal,
+  StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
-import {Checkbox} from 'react-native-paper';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import {Picker} from '@react-native-picker/picker';
 
-export default function HomeScreen({
+const HomeScreen = ({
   tasks,
   text,
   setText,
@@ -22,242 +21,207 @@ export default function HomeScreen({
   editModalVisibility,
   setEditModalVisibility,
   saveEditedTask,
-  taskToEdit,
-  setTaskToEdit,
+  taskToDelete,
+  setTaskToDelete,
   deleteModalVisibility,
   setDeleteModalVisibility,
-  setTaskToDelete,
-}) {
+}) => {
+  const renderTask = ({item}) => (
+    <View style={styles.taskContainer}>
+      <Text
+        style={[
+          styles.taskText,
+          item.status === 'completed' && styles.completedTask,
+        ]}>
+        {item.text}
+      </Text>
+      <Picker
+        selectedValue={item.status}
+        onValueChange={value => toggleTaskCompletion(item.id, value)}
+        style={styles.picker}>
+        <Picker.Item label="Not Started" value="not-started" />
+        <Picker.Item label="In Progress" value="in-progress" />
+        <Picker.Item label="Completed" value="completed" />
+      </Picker>
+      <TouchableOpacity
+        style={styles.editButton}
+        onPress={() => editTask(item.id)}>
+        <Text style={styles.buttonText}>Edit</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.deleteButton}
+        onPress={() => {
+          setTaskToDelete(item.id);
+          setDeleteModalVisibility(true);
+        }}>
+        <Text style={styles.buttonText}>Delete</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Task Manager</Text>
+      <Text style={styles.title}>Task Manager</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter a new task"
+        value={text}
+        onChangeText={setText}
+      />
+      <TouchableOpacity style={styles.addButton} onPress={addTask}>
+        <Text style={styles.buttonText}>Add Task</Text>
+      </TouchableOpacity>
 
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter task"
-          value={text}
-          onChangeText={setText}
-        />
-        <TouchableOpacity onPress={addTask} style={styles.addButton}>
-          <Text style={styles.addButtonText}>Add Task</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.tasksContainer}>
-        <ScrollView>
-          {tasks.map(task => (
-            <View key={task.id} style={styles.taskItem}>
-              <Checkbox
-                status={task.completed ? 'checked' : 'unchecked'}
-                onPress={() => toggleTaskCompletion(task.id)}
-              />
-              <Text
-                style={[
-                  styles.taskText,
-                  task.completed && styles.completedTaskText,
-                ]}>
-                {task.text}
-              </Text>
-              <TouchableOpacity
-                onPress={() => editTask(task.id)}
-                style={styles.iconButton}>
-                <Icon name="edit" size={20} color="blue" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  setDeleteModalVisibility(true);
-                  setTaskToDelete(task.id);
-                }}
-                style={styles.iconButton}>
-                <Icon name="delete" size={20} color="red" />
-              </TouchableOpacity>
-            </View>
-          ))}
-        </ScrollView>
-      </View>
+      <FlatList
+        data={tasks}
+        keyExtractor={item => item.id.toString()}
+        renderItem={renderTask}
+        style={styles.taskList}
+      />
 
       {/* Edit Task Modal */}
-      <Modal
-        transparent={true}
-        visible={editModalVisibility}
-        animationType="slide"
-        onRequestClose={() => setEditModalVisibility(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>
-                Make your Changes
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Edit task"
-              value={text}
-              onChangeText={setText}
-            />
-            <View style={styles.options}>
-              <TouchableOpacity
-                onPress={saveEditedTask}
-                style={styles.cancelButton}>
-                <Text style={styles.cancelButtonText}>Save</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setEditModalVisibility(false)}
-                style={styles.cancelButton}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+      <Modal visible={editModalVisibility} animationType="slide" transparent>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Edit Task</Text>
+          <TextInput
+            style={styles.editInput}
+            placeholder="Edit your task"
+            value={text}
+            onChangeText={setText}
+          />
+          <TouchableOpacity style={styles.saveButton} onPress={saveEditedTask}>
+            <Text style={styles.buttonText}>Save Changes</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => setEditModalVisibility(false)}>
+            <Text style={styles.buttonText}>Cancel</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
 
-      {/* Delete Task Modal */}
-      <Modal
-        transparent={true}
-        visible={deleteModalVisibility}
-        animationType="slide"
-        onRequestClose={() => setDeleteModalVisibility(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>
-              Are you sure you want to delete this task?
-            </Text>
-            <View style={styles.options}>
-              <TouchableOpacity
-                onPress={() => setDeleteModalVisibility(false)}
-                style={styles.cancelButton}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={deleteTask}
-                style={styles.deleteButton}>
-                <Text style={styles.deleteButtonText}>Delete</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+      {/* Delete Confirmation Modal */}
+      <Modal visible={deleteModalVisibility} animationType="slide" transparent>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Delete Task</Text>
+          <Text>Are you sure you want to delete this task?</Text>
+          <TouchableOpacity
+            style={styles.confirmDeleteButton}
+            onPress={deleteTask}>
+            <Text style={styles.buttonText}>Yes</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => setDeleteModalVisibility(false)}>
+            <Text style={styles.buttonText}>No</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
     </View>
   );
-}
+};
+
+export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    flex: 1,
     padding: 20,
-    paddingTop: 40,
-    backgroundColor: '#f4f4f4',
+    backgroundColor: '#f8f8f8',
   },
-  heading: {
-    fontSize: 20,
+  title: {
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
     textAlign: 'center',
-    color: '#333',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 20,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    padding: 12,
-    marginVertical: 10,
-    width: 250,
-    borderRadius: 8,
-    backgroundColor: '#fff',
+    borderColor: '#ccc',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
   },
   addButton: {
-    backgroundColor: '#007BFF',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    backgroundColor: '#2196f3',
+    padding: 10,
+    borderRadius: 5,
     alignItems: 'center',
+    marginBottom: 20,
   },
-  addButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  tasksContainer: {
+  taskList: {
     marginTop: 20,
-    width: '100%',
   },
-  taskItem: {
+  taskContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
+    padding: 10,
     backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderBottomWidth: 1,
+    borderColor: '#eee',
   },
   taskText: {
     fontSize: 16,
-    color: '#333',
-    flex: 1,
+    flex: 2,
   },
-  completedTaskText: {
+  completedTask: {
     textDecorationLine: 'line-through',
     color: '#888',
   },
-  iconButton: {
+  picker: {
+    flex: 1,
+    marginHorizontal: 10,
+    backgroundColor: '#e3f2fd',
+    borderRadius: 5,
+  },
+  editButton: {
+    backgroundColor: '#4caf50',
     padding: 5,
+    marginHorizontal: 5,
+    borderRadius: 5,
   },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    elevation: 5,
-  },
-  modalText: {
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: 'center',
-    color: '#333',
-  },
-  options: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-  },
-  cancelButton: {
-    backgroundColor: '#007BFF',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginRight: 10,
-  },
-  cancelButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+  editInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
   deleteButton: {
-    backgroundColor: '#d9534f',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    backgroundColor: '#f44336',
+    padding: 5,
+    marginHorizontal: 5,
+    borderRadius: 5,
   },
-  deleteButtonText: {
+  buttonText: {
     color: '#fff',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#fff',
+  },
+  saveButton: {
+    backgroundColor: '#4caf50',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  cancelButton: {
+    backgroundColor: '#f44336',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  confirmDeleteButton: {
+    backgroundColor: '#d32f2f',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
   },
 });

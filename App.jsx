@@ -6,7 +6,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Import Screens
 import HomeScreen from './screens/HomeScreen';
 import CompletedScreen from './screens/CompletedScreen';
-import ToDoScreen from './screens/TodoScreen';  // Make sure the path is correct
+import ToDoScreen from './screens/TodoScreen';
+import WIPScreen from './screens/WIPScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -18,29 +19,25 @@ export default function App() {
   const [editModalVisibility, setEditModalVisibility] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
 
-  // Load tasks and task counter from AsyncStorage on component mount
   useEffect(() => {
     const loadTasks = async () => {
       try {
         const storedTasks = await AsyncStorage.getItem('tasks');
         const storedCounter = await AsyncStorage.getItem('taskIdCounter');
         if (storedTasks) {
-          const parsedTasks = JSON.parse(storedTasks);
-          const sortedTasks = [
-            ...parsedTasks.filter(task => !task.completed),
-            ...parsedTasks.filter(task => task.completed),
-          ];
-          setTasks(sortedTasks);
+          setTasks(JSON.parse(storedTasks));
         }
         setTaskIdCounter(storedCounter ? parseInt(storedCounter, 10) : 1);
       } catch (error) {
-        console.error('Error loading tasks or counter from AsyncStorage', error);
+        console.error(
+          'Error loading tasks or counter from AsyncStorage',
+          error,
+        );
       }
     };
     loadTasks();
   }, []);
 
-  // Save tasks to AsyncStorage when tasks state changes
   useEffect(() => {
     const saveTasks = async () => {
       try {
@@ -52,7 +49,6 @@ export default function App() {
     saveTasks();
   }, [tasks]);
 
-  // Save taskIdCounter to AsyncStorage when it changes
   useEffect(() => {
     const saveTaskIdCounter = async () => {
       try {
@@ -64,32 +60,22 @@ export default function App() {
     saveTaskIdCounter();
   }, [taskIdCounter]);
 
-  // Add a new task
   const addTask = () => {
     if (text.trim()) {
-      const newTask = {id: taskIdCounter, text, completed: false};
-      setTasks(prevTasks => [
-        ...prevTasks,
-        newTask,
-      ]);
+      const newTask = {id: taskIdCounter, text, status: 'not-started'};
+      setTasks(prevTasks => [...prevTasks, newTask]);
       setText('');
       setTaskIdCounter(prevCounter => prevCounter + 1);
     }
   };
 
-  // Toggle task completion status
-  const toggleTaskCompletion = taskId => {
+  const toggleTaskCompletion = (taskId, newStatus) => {
     const updatedTasks = tasks.map(task =>
-      task.id === taskId ? {...task, completed: !task.completed} : task,
+      task.id === taskId ? {...task, status: newStatus} : task,
     );
-    const sortedTasks = [
-      ...updatedTasks.filter(task => !task.completed),
-      ...updatedTasks.filter(task => task.completed),
-    ];
-    setTasks(sortedTasks);
+    setTasks(updatedTasks);
   };
 
-  // Delete a task
   const deleteTask = () => {
     if (taskToDelete !== null) {
       const updatedTasks = tasks.filter(task => task.id !== taskToDelete);
@@ -98,17 +84,15 @@ export default function App() {
     }
   };
 
-  // Edit an existing task
   const editTask = taskId => {
     const editableTask = tasks.find(task => task.id === taskId);
     if (editableTask) {
       setText(editableTask.text);
-      setTaskToDelete(editableTask.id); // or setTaskToEdit depending on logic
+      setTaskToDelete(editableTask.id);
       setEditModalVisibility(true);
     }
   };
 
-  // Save edited task
   const saveEditedTask = () => {
     if (taskToDelete !== null) {
       const updatedTasks = tasks.map(task =>
@@ -146,7 +130,7 @@ export default function App() {
             />
           )}
         </Tab.Screen>
-        <Tab.Screen name="CompletedScreen">
+        <Tab.Screen name="Completed">
           {props => (
             <CompletedScreen
               {...props}
@@ -155,9 +139,18 @@ export default function App() {
             />
           )}
         </Tab.Screen>
-        <Tab.Screen name="ToDoScreen">
+        <Tab.Screen name="To-Do">
           {props => (
             <ToDoScreen
+              {...props}
+              tasks={tasks}
+              toggleTaskCompletion={toggleTaskCompletion}
+            />
+          )}
+        </Tab.Screen>
+        <Tab.Screen name="WIP">
+          {props => (
+            <WIPScreen
               {...props}
               tasks={tasks}
               toggleTaskCompletion={toggleTaskCompletion}
