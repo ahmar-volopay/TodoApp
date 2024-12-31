@@ -9,8 +9,9 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
-
-const HomeScreen = ({
+import {PICKERVAlUE} from '../constants/PickerValues';
+import {PICKERLABELS} from '../constants/PickerLabels';
+export default function HomeScreen({
   tasks,
   text,
   setText,
@@ -25,7 +26,7 @@ const HomeScreen = ({
   setTaskToDelete,
   deleteModalVisibility,
   setDeleteModalVisibility,
-}) => {
+}) {
   const renderTask = ({item}) => (
     <View style={styles.taskContainer}>
       <Text
@@ -39,9 +40,18 @@ const HomeScreen = ({
         selectedValue={item.status}
         onValueChange={value => toggleTaskCompletion(item.id, value)}
         style={styles.picker}>
-        <Picker.Item label="Not Started" value="not-started" />
-        <Picker.Item label="In Progress" value="in-progress" />
-        <Picker.Item label="Completed" value="completed" />
+        <Picker.Item
+          label={PICKERLABELS.NOT_STARTED}
+          value={PICKERVAlUE.NOT_STARTED}
+        />
+        <Picker.Item
+          label={PICKERLABELS.IN_PROGRESS}
+          value={PICKERVAlUE.IN_PROGRESS}
+        />
+        <Picker.Item
+          label={PICKERLABELS.COMPLETED}
+          value={PICKERVAlUE.COMPLETED}
+        />
       </Picker>
       <TouchableOpacity
         style={styles.editButton}
@@ -89,14 +99,18 @@ const HomeScreen = ({
             value={text}
             onChangeText={setText}
           />
-          <TouchableOpacity style={styles.saveButton} onPress={saveEditedTask}>
-            <Text style={styles.buttonText}>Save Changes</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => setEditModalVisibility(false)}>
-            <Text style={styles.buttonText}>Cancel</Text>
-          </TouchableOpacity>
+          <View style={styles.modalOptions}>
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={saveEditedTask}>
+              <Text style={styles.buttonText}>Save Changes</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setEditModalVisibility(false)}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
 
@@ -105,23 +119,25 @@ const HomeScreen = ({
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Delete Task</Text>
           <Text>Are you sure you want to delete this task?</Text>
-          <TouchableOpacity
-            style={styles.confirmDeleteButton}
-            onPress={deleteTask}>
-            <Text style={styles.buttonText}>Yes</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => setDeleteModalVisibility(false)}>
-            <Text style={styles.buttonText}>No</Text>
-          </TouchableOpacity>
+          <View style={styles.modalOptions}>
+            <TouchableOpacity
+              style={styles.confirmDeleteButton}
+              onPress={deleteTask}>
+              <Text style={styles.buttonText}>Yes</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setDeleteModalVisibility(false)}>
+              <Text style={styles.buttonText}>No</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </View>
   );
-};
+}
 
-export default HomeScreen;
+// export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -206,6 +222,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: '#fff',
   },
+  modalOptions: {
+    flexDirection: 'row',
+    gap: 6,
+  },
   saveButton: {
     backgroundColor: '#4caf50',
     padding: 10,
@@ -225,3 +245,4 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 });
+

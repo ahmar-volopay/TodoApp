@@ -1,9 +1,18 @@
 import {Picker} from '@react-native-picker/picker';
 import React from 'react';
 import {View, Text, ScrollView, StyleSheet} from 'react-native';
+import {PICKERVAlUE} from '../../constants/PickerValues';
+import {PICKERLABELS} from '../../constants/PickerLabels';
+import PropTypes from 'prop-types';
+/**
+ *
+ * @param {Array<Object>} tasks tasks to show
+ * @param {Function} toggleTaskCompletion to toggle task status: ("Not Started", "In Progress", "Completed")
+ * @param {string} FilterStatus task status: ("Not Started", "In Progress", "Completed")
+ */
 
 export default function ListFilter({
-  tasks,
+  tasks = [],
   toggleTaskCompletion,
   FilterStatus,
 }) {
@@ -20,9 +29,19 @@ export default function ListFilter({
                 onValueChange={itemValue =>
                   toggleTaskCompletion(task.id, itemValue)
                 }>
-                <Picker.Item label="Not Started" value="not-started" />
-                <Picker.Item label="In Progress" value="in-progress" />
-                <Picker.Item label="Completed" value="completed" />
+                <Picker.Item
+                  label={PICKERLABELS.NOT_STARTED}
+                  value={PICKERVAlUE.NOT_STARTED}
+                />
+                {/* Comment: label, and value should be enums */}
+                <Picker.Item
+                  label={PICKERLABELS.IN_PROGRESS}
+                  value={PICKERVAlUE.IN_PROGRESS}
+                />
+                <Picker.Item
+                  label={PICKERLABELS.COMPLETED}
+                  value={PICKERVAlUE.COMPLETED}
+                />
               </Picker>
               <Text style={styles.taskText}>{task.text}</Text>
             </View>
@@ -63,3 +82,9 @@ const styles = StyleSheet.create({
     color: '#333',
   },
 });
+
+ListFilter.propTypes = {
+  tasks: PropTypes.array,
+  toggleTaskCompletion: PropTypes.func,
+  FilterStatus: PropTypes.string,
+};

@@ -5,10 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Import Screens
 import HomeScreen from './screens/HomeScreen';
-// import CompletedScreen from './screens/CompletedScreen';
-// import ToDoScreen from './screens/TodoScreen';
-// import WIPScreen from './screens/WIPScreen';
-import DumbScreen from './components/core/DumbScreen';
+import ListFilter from './components/core/ListFilter';
 
 const Tab = createBottomTabNavigator();
 
@@ -78,11 +75,9 @@ export default function App() {
   };
 
   const deleteTask = () => {
-    if (taskToDelete !== null) {
-      const updatedTasks = tasks.filter(task => task.id !== taskToDelete);
-      setTasks(updatedTasks);
-      setDeleteModalVisibility(false);
-    }
+    const updatedTasks = tasks.filter(task => task.id !== taskToDelete);
+    setTasks(updatedTasks);
+    setDeleteModalVisibility(false);
   };
 
   const editTask = taskId => {
@@ -160,7 +155,7 @@ export default function App() {
         </Tab.Screen> */}
         <Tab.Screen name="Completed">
           {props => (
-            <DumbScreen
+            <ListFilter
               {...props}
               tasks={tasks}
               toggleTaskCompletion={toggleTaskCompletion}
@@ -170,7 +165,7 @@ export default function App() {
         </Tab.Screen>
         <Tab.Screen name="To-Do">
           {props => (
-            <DumbScreen
+            <ListFilter
               {...props}
               tasks={tasks}
               toggleTaskCompletion={toggleTaskCompletion}
@@ -180,7 +175,7 @@ export default function App() {
         </Tab.Screen>
         <Tab.Screen name="WIP">
           {props => (
-            <DumbScreen
+            <ListFilter
               {...props}
               tasks={tasks}
               toggleTaskCompletion={toggleTaskCompletion}
