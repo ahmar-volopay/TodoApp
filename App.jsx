@@ -5,9 +5,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Import Screens
 import HomeScreen from './screens/HomeScreen';
-import CompletedScreen from './screens/CompletedScreen';
-import ToDoScreen from './screens/TodoScreen';
-import WIPScreen from './screens/WIPScreen';
+// import CompletedScreen from './screens/CompletedScreen';
+// import ToDoScreen from './screens/TodoScreen';
+// import WIPScreen from './screens/WIPScreen';
+import DumbScreen from './components/core/DumbScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -130,7 +131,7 @@ export default function App() {
             />
           )}
         </Tab.Screen>
-        <Tab.Screen name="Completed">
+        {/* <Tab.Screen name="Completed">
           {props => (
             <CompletedScreen
               {...props}
@@ -148,12 +149,42 @@ export default function App() {
             />
           )}
         </Tab.Screen>
-        <Tab.Screen name="WIP">
+        {/* <Tab.Screen name="WIP">
           {props => (
             <WIPScreen
               {...props}
               tasks={tasks}
               toggleTaskCompletion={toggleTaskCompletion}
+            />
+          )}
+        </Tab.Screen> */}
+        <Tab.Screen name="Completed">
+          {props => (
+            <DumbScreen
+              {...props}
+              tasks={tasks}
+              toggleTaskCompletion={toggleTaskCompletion}
+              FilterStatus={'completed'}
+            />
+          )}
+        </Tab.Screen>
+        <Tab.Screen name="To-Do">
+          {props => (
+            <DumbScreen
+              {...props}
+              tasks={tasks}
+              toggleTaskCompletion={toggleTaskCompletion}
+              FilterStatus={'not-started'}
+            />
+          )}
+        </Tab.Screen>
+        <Tab.Screen name="WIP">
+          {props => (
+            <DumbScreen
+              {...props}
+              tasks={tasks}
+              toggleTaskCompletion={toggleTaskCompletion}
+              FilterStatus={'in-progress'}
             />
           )}
         </Tab.Screen>
